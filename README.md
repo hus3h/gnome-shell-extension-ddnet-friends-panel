@@ -12,6 +12,14 @@ This extension will check for online DDNet friends every 1 minute and show their
 
 ___
 
+# Install
+
+```
+git clone "https://github.com/hus3h/gnome-shell-extension-ddnet-friends-panel" ~/.local/share/gnome-shell/extensions/ddnet-friends-panel@hus3h
+```
+
+___
+
 # Notes
 
  - The extension uses the configuration file `~/.teeworlds/settings_ddnet.cfg` to get the friends list, make sure the file exists and your user has access to read it
