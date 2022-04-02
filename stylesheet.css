@@ -1,0 +1,14 @@
+.playerName {
+ width: 7.3em;
+}
+.serverName {
+ width: 13.3em;
+ margin-left: 0.1em;
+}
+.officialServer {
+ width: 1.1em;
+ margin-left: 3em;
+}
+.mapName {
+ margin-left: 3em;
+}

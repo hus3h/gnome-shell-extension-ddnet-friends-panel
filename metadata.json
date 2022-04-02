@@ -1,0 +1,11 @@
+{
+  "description": "Automatically check for online DDNet friends and join them from your top bar.\n\nThis extension will check for online DDNet friends every 1 minute and show their count in your top bar. You can click the indicator to expand the panel and see more details like what map each friend is playing, you can click on a friend list item to launch the game and connect to the server they are in.\n\nMore details: https://github.com/hus3h/gnome-shell-extension-ddnet-friends-panel",
+  "name": "DDNet Friends Panel",
+  "shell-version": [
+    "40",
+    "41"
+  ],
+  "url": "https://github.com/hus3h/gnome-shell-extension-ddnet-friends-panel",
+  "uuid": "ddnet-friends-panel@hus3h",
+  "version": 1
+}
