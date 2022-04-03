@@ -18,7 +18,7 @@ ___
 
 [<img src="https://raw.githubusercontent.com/andyholmes/gnome-shell-extensions-badge/master/get-it-on-ego.svg?sanitize=true" alt="Get it on GNOME Extensions" height="100" align="middle">][extension-link]
 
-[extension-link]: https://extensions.gnome.org/extension/4850/command-menu/
+[extension-link]: https://extensions.gnome.org/extension/4965/ddnet-friends-panel/
 
 ### Manual
 
