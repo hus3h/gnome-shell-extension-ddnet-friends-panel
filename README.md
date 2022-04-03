@@ -14,6 +14,14 @@ ___
 
 # Install
 
+### Gnome Shell Extensions
+
+[<img src="https://raw.githubusercontent.com/andyholmes/gnome-shell-extensions-badge/master/get-it-on-ego.svg?sanitize=true" alt="Get it on GNOME Extensions" height="100" align="middle">][extension-link] 
+
+### Manual
+
+[extension-link]: https://extensions.gnome.org/extension/4850/command-menu/
+
 ```
 git clone "https://github.com/hus3h/gnome-shell-extension-ddnet-friends-panel" ~/.local/share/gnome-shell/extensions/ddnet-friends-panel@hus3h
 ```
