@@ -231,8 +231,11 @@ class DDNetServer {
   getMapName() {
     return this.data.info.map.name + " (" + this.data.info.clients.length + "/" + this.data.info.max_players + ")";
   }
+  getCleanServerText(){
+    return this.data.info.name.replace(/\[.*?\]/g, "").replace(/\s+/g, " ").trim();
+  }
   getServerText() {
-    return this.data.info.name;
+    return this.isVerified() ? this.getCleanServerText()  : this.data.info.name;
   }
   getJoinURL() {
     return this.data.addresses[this.data.addresses.length - 1].split("//")[1];
