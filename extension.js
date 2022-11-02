@@ -19,6 +19,7 @@ const RELOAD_ICON_TEXT = "⟳";
 const DDNET_EXECUTABLE = "DDNet";
 const TEEWORLDS_DIRECTORY = GLib.get_home_dir() + "/.teeworlds"; // ~/.teeworlds
 const UPDATE_INTERVAL_SECONDS = 60;
+const INITIAL_RETRY_INTERVAL_SECONDS = 2;
 
 // const SHOW_BROWSER_PAGE_COMMAND = DDNET_EXECUTABLE + " \"cl_skip_start_menu 1\""; // this is saved to settings file so disabling it
 const SHOW_BROWSER_PAGE_COMMAND = DDNET_EXECUTABLE;
@@ -59,6 +60,7 @@ const DDNetFriendsMenu = GObject.registerClass(
       updateButtonContainer.actor.add_actor(this.updateButton.actor);
       this.extraButtonsView.addMenuItem(updateButtonContainer);
       this.updateButton.connect('activate', () => { this.updateList(); });
+      this.updateButton.actor.reactive = false;
 
       const playButton = new PopupMenu.PopupMenuItem("Play");
       playButton.connect('activate', () => {
@@ -68,9 +70,7 @@ const DDNetFriendsMenu = GObject.registerClass(
       this.menu.addMenuItem(this.extraButtonsView);
       this.menu.connect('open-state-changed', this.onMenuOpened.bind(this));
 
-      this.canUpdate = true;
-
-      this.storeOfficialServersListThenUpdate();
+      this.tryStoreOfficialServersListThenUpdate();
       // this.updateList();
     }
     updateList() {
@@ -93,7 +93,7 @@ const DDNetFriendsMenu = GObject.registerClass(
       this.onlineFriendsCountText.set_text(RELOAD_ICON_TEXT);
     }
     update(callback) {
-      this.clearTimeout();
+      this.clearTimeouts();
       this.friendsList = [];
       const file = Gio.file_new_for_path(TEEWORLDS_DIRECTORY + "/settings_ddnet.cfg");
       let endpointURL = null;
@@ -154,25 +154,30 @@ const DDNetFriendsMenu = GObject.registerClass(
             this.addMenuError("Error loading or parsing servers list");
           }
           if (callback) callback();
-          this.startTimeout();
+          this.startUpdateTimeout();
         });
       }
       else {
         this.addMenuError("You did not add any friends");
         if (callback) callback();
-        this.startTimeout();
+        this.startUpdateTimeout();
       }
     }
     onMenuOpened() {
       if (this.menu.isOpen)
         this.updateList();
     }
-    startTimeout() {
-      this.clearTimeout();
+    startUpdateTimeout() {
+      this.clearTimeouts();
       this.timeout = Mainloop.timeout_add_seconds(UPDATE_INTERVAL_SECONDS, () => { this.updateList(); });
     }
-    clearTimeout() {
+    clearTimeouts() {
       if (this.timeout) Mainloop.source_remove(this.timeout);
+      if (this.initialRetryTimeout) Mainloop.source_remove(this.initialRetryTimeout);
+    }
+    tryStoreOfficialServersListThenUpdate(timeoutSeconds = 0){
+      this.clearTimeouts();
+      this.initialRetryTimeout = Mainloop.timeout_add_seconds(timeoutSeconds, ()=> { this.storeOfficialServersListThenUpdate(); });
     }
     storeOfficialServersListThenUpdate() {
       const serverTypes = ["servers", "servers-kog"];
@@ -189,9 +194,11 @@ const DDNetFriendsMenu = GObject.registerClass(
             }
           }
           officialServersList = [...new Set(officialServersList)]; // array unique
+          this.canUpdate = true;
           this.updateList();
         } catch (e) {
-          this.addMenuError("Failed to parse servers info");
+          this.addMenuError("Failed to parse servers info, retrying...");
+          this.tryStoreOfficialServersListThenUpdate(INITIAL_RETRY_INTERVAL_SECONDS);
         }
       });
     }
@@ -293,7 +300,7 @@ function enable() {
 }
 
 function disable() {
-  friendsMenu.clearTimeout();
+  friendsMenu.clearTimeouts();
   friendsMenu.destroy();
   friendsMenu = null;
 }
