@@ -1,6 +1,6 @@
 <img align="middle" src="https://github.com/hus3h/gnome-shell-extension-ddnet-friends-panel/raw/main/ddnet-icon.png" width="100"> 
 
-# DDNet friends panel for Gnome Shell
+# DDNet friends panel for GNOME Shell
 
 Automatically check for online DDNet friends and join them from your top bar.
 
@@ -14,7 +14,7 @@ ___
 
 # Install
 
-### Gnome Shell Extensions
+### GNOME Shell Extensions
 
 [<img src="https://raw.githubusercontent.com/andyholmes/gnome-shell-extensions-badge/master/get-it-on-ego.svg?sanitize=true" alt="Get it on GNOME Extensions" height="100" align="middle">][extension-link]
 
