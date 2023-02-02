@@ -4,9 +4,10 @@
   "shell-version": [
     "40",
     "41",
-    "42"
+    "42",
+    "43"
   ],
   "url": "https://github.com/hus3h/gnome-shell-extension-ddnet-friends-panel",
   "uuid": "ddnet-friends-panel@hus3h",
-  "version": 2
+  "version": 3
 }

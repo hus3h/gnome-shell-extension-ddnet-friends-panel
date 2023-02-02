@@ -289,10 +289,28 @@ const PlayersListHead = GObject.registerClass(
 
 function load_json_async(httpSession, url, fun) {
   let message = Soup.Message.new('GET', url);
-  httpSession.queue_message(message, function (session, message) {
-    let data = JSON.parse(message.response_body.data);
-    fun(data);
-  });
+		if(httpSession.queue_message){
+			httpSession.queue_message(message, function (session, message) {
+					let data = JSON.parse(message.response_body.data);
+					fun(data);
+			});
+		} else if(httpSession.send_and_read_async){
+			httpSession.send_and_read_async(
+				message,
+				GLib.PRIORITY_DEFAULT,
+				null,
+				function (session, result) {
+					let bytes = session.send_and_read_finish(result);
+					let decoder = new TextDecoder('utf-8');
+					let response = decoder.decode(bytes.get_data());
+					let data = JSON.parse(response);
+					fun(data);
+				}
+			);
+		}
+	 else {
+			friendsMenu.addMenuError("Cannot send HTTP requests");
+		}
 }
 
 function init() { }
