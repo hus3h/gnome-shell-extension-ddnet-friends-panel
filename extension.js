@@ -10,19 +10,19 @@ const Soup = imports.gi.Soup;
 const Gtk = imports.gi.Gtk;
 const Mainloop = imports.mainloop;
 const ByteArray = imports.byteArray;
+const GioSSS = Gio.SettingsSchemaSource;
+const ExtensionUtils = imports.misc.extensionUtils;
+const Extension = ExtensionUtils.getCurrentExtension();
+const ExtensionSettings = Extension.imports.settings;
+const Util = imports.misc.util;
+const prefs = new ExtensionSettings.Prefs();
 
 const MULTIPLE_SERVERS_TEXT = "(Multiple servers)";
 const DEFAULT_ENDPOINT_URL = "https://master1.ddnet.tw/ddnet/15/servers.json";
 const INFO_ENDPOINT_URL = "https://info2.ddnet.tw/info";
 
 const RELOAD_ICON_TEXT = "⟳";
-const DDNET_EXECUTABLE = "DDNet";
-const TEEWORLDS_DIRECTORY = GLib.get_home_dir() + "/.teeworlds"; // ~/.teeworlds
-const UPDATE_INTERVAL_SECONDS = 60;
 const INITIAL_RETRY_INTERVAL_SECONDS = 2;
-
-// const SHOW_BROWSER_PAGE_COMMAND = DDNET_EXECUTABLE + " \"cl_skip_start_menu 1\""; // this is saved to settings file so disabling it
-const SHOW_BROWSER_PAGE_COMMAND = DDNET_EXECUTABLE;
 
 var officialServersList = [];
 let friendsMenu;
@@ -62,12 +62,23 @@ const DDNetFriendsMenu = GObject.registerClass(
    this.updateButton.connect('activate', () => { this.updateList(); });
    this.updateButton.actor.reactive = false;
 
+
+   const settingsButton = new PopupMenu.PopupMenuItem("Settings");
+   settingsButton.connect('activate', () => {
+     Util.spawn([
+       "gnome-extensions", "prefs",
+       Extension.uuid
+     ]);
+   });
+   this.extraButtonsView.addMenuItem(settingsButton);
+
    const playButton = new PopupMenu.PopupMenuItem("Play");
    playButton.connect('activate', () => {
-    GLib.spawn_command_line_async(DDNET_EXECUTABLE);
+    GLib.spawn_command_line_async(getSettingsJoinCommand());
    });
    this.extraButtonsView.addMenuItem(playButton);
    this.menu.addMenuItem(this.extraButtonsView);
+
    this.menu.connect('open-state-changed', this.onMenuOpened.bind(this));
 
    this.tryStoreOfficialServersListThenUpdate();
@@ -95,29 +106,36 @@ const DDNetFriendsMenu = GObject.registerClass(
   update(callback) {
    this.clearTimeouts();
    this.friendsList = [];
-   const file = Gio.file_new_for_path(TEEWORLDS_DIRECTORY + "/settings_ddnet.cfg");
+   const file = getConfigFile();
    let endpointURL = null;
-   try {
-    var [ok, contents, _] = file.load_contents(null);
-    if (ok) {
-     const lines = ByteArray.toString(contents).split("\n");
-     for (var i = 0; i < lines.length; i++) {
-      if (lines[i].search("add_friend") !== -1) {
-       const match = lines[i].match(/(?<=add_friend "(.*)" \".*\")/);
-        if (match.length > 1)
-        this.friendsList.push(new DDNetPlayer(match[1]));
-       }
-      else if (lines[i].search("br_cached_best_serverinfo_url") !== -1) {
-       const match = lines[i].match(/\"(.*)\"/);
-        if (match.length > 1)
-        endpointURL = match[1];
-       }
-     }
+   if(file){
+    try {
+      var [ok, contents, _] = file.load_contents(null);
+      if (ok) {
+      const lines = ByteArray.toString(contents).split("\n");
+      for (var i = 0; i < lines.length; i++) {
+        if (lines[i].search("add_friend") !== -1) {
+        const match = lines[i].match(/(?<=add_friend "(.*)" \".*\")/);
+          if (match && match.length > 1)
+            this.friendsList.push(new DDNetPlayer(match[1]));
+        }
+        else if (lines[i].search("br_cached_best_serverinfo_url") !== -1) {
+        const match = lines[i].match(/\"(.*)\"/);
+          if (match.length > 1)
+          endpointURL = match[1];
+        }
+      }
+      }
+    } catch (e) {
+      this.addMenuError("Error reading settings_ddnet.cfg file");
+      logError(e);
+      if (callback) callback();
+      return;
     }
-   } catch (e) {
-    this.addMenuError("Error reading settings_ddnet.cfg file");
-    if (callback) callback();
-    return;
+   } else {
+     this.addMenuError("Cannot find settings_ddnet.cnf, please select the location manually in the extension settings");
+     if (callback) callback();
+     return;
    }
    if (this.friendsList.length > 0) {
     if (endpointURL === null)
@@ -169,7 +187,7 @@ const DDNetFriendsMenu = GObject.registerClass(
   }
   startUpdateTimeout() {
    this.clearTimeouts();
-   this.timeout = Mainloop.timeout_add_seconds(UPDATE_INTERVAL_SECONDS, () => { this.updateList(); });
+   this.timeout = Mainloop.timeout_add_seconds(prefs.refreshInterval.get(), () => { this.updateList(); });
   }
   clearTimeouts() {
    if (this.timeout) Mainloop.source_remove(this.timeout);
@@ -187,6 +205,7 @@ const DDNetFriendsMenu = GObject.registerClass(
       const serverType = serverTypes[serverTypeIndex];
       for (var i = 0; i < data[serverType].length; i++) {
        for (var group in data[serverType][i].servers) {
+        if(data[serverType][i].servers[group] === null) continue;
         for (var j = 0; j < data[serverType][i].servers[group].length; j++) {
          officialServersList.push(data[serverType][i].servers[group][j].split(":")[0]);
         }
@@ -220,7 +239,7 @@ class DDNetPlayer {
   if (this.activeServers.length === 1)
    return this.activeServers[0].getJoinCommand();
   else
-   return SHOW_BROWSER_PAGE_COMMAND;
+   return getSettingsJoinCommand();
  }
 }
 
@@ -241,7 +260,7 @@ class DDNetServer {
   return this.data.addresses[this.data.addresses.length - 1].split("//")[1];
  }
  getJoinCommand() {
-  return DDNET_EXECUTABLE + " 'connect " + this.getJoinURL() + "'";
+  return getSettingsJoinCommand() + " 'connect " + this.getJoinURL() + "'";
  }
  isVerified() {
   return officialServersList.indexOf(this.getJoinURL().split(":")[0]) !== -1;
@@ -287,6 +306,27 @@ const PlayersListHead = GObject.registerClass(
  }
 );
 
+function getSettingsJoinCommand(){
+  const value = prefs.joinCommand.get().trim().replace("~", GLib.get_home_dir());
+  return !value ? "DDNet" : value;
+}
+
+function getConfigFile(){
+ let file = null;
+ let settingsPath = prefs.configPath.get().trim();
+ if(!settingsPath){
+  const homeDir = GLib.get_home_dir();
+  file = Gio.file_new_for_path(homeDir + "/.teeworlds/settings_ddnet.cfg");
+  if(!file.query_exists(null)){
+    file = Gio.file_new_for_path(homeDir + "/.local/share/ddnet/settings_ddnet.cfg");
+  }
+ } else {
+  file = Gio.file_new_for_path(settingsPath);
+ }
+ if(!file || !file.query_exists(null)) return null;
+ return file;
+}
+
 function load_json_async(httpSession, url, fun) {
  let message = Soup.Message.new('GET', url);
  if(httpSession.queue_message){
@@ -316,6 +356,12 @@ function load_json_async(httpSession, url, fun) {
 function init() { }
 
 function enable() {
+ prefs.refreshInterval.changed(()=> {
+  friendsMenu.updateList();
+ });
+ prefs.configPath.changed(()=> {
+  friendsMenu.updateList();
+ });
  friendsMenu = new DDNetFriendsMenu();
  Main.panel.addToStatusArea('DDNetFriendsPanel', friendsMenu, 1);
 }

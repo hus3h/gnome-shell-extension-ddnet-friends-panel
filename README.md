@@ -4,7 +4,7 @@
 
 Automatically check for online DDNet friends and join them from your top bar.
 
-This extension will check for online DDNet friends every 1 minute and show their count in your top bar. You can click the indicator to expand the panel and see more details like what map each friend is playing, you can click on a friend list item to launch the game and connect to the server they are in.
+This extension will check for online DDNet friends and show their count in your top bar. You can click the indicator to expand the panel and see more details such as the map each friend is playing, and you can click on a friend list item to launch the game and connect to the server they are in.
 
 ![screenshot][screenshot]
 
@@ -30,9 +30,9 @@ ___
 
 # Notes
 
- - The extension uses the configuration file `~/.teeworlds/settings_ddnet.cfg` to get the friends list, make sure the file exists and your user has access to read it
- - Newly added friends will appear in the panel after you close the game (the game client saves configuration on exit)
- - Options like the DDNet executable location and refresh interval are not currently customizable but can be easily edited in `extension.js` at the beginning of the file if needed
+ - The extension runs the command `DDNet` to start the game, you can change the command or specify the path to the executable in the extension settings if needed
+ - The extension searches for the configuration file in the default locations, you can choose the file location manually in the extension settings if needed
+ - Newly added friends will appear in the panel after you close the game (the game client updates the configuration file on exit)
  - If you are facing a problem or have an idea for a feature, feel free to open an issue
 
 ___

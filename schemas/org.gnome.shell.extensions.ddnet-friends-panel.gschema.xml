@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+	<schema id="org.gnome.shell.extensions.ddnet-friends-panel" path="/org/gnome/shell/extensions/ddnet-friends-panel/">
+		<key type="s" name="config-path">
+			<default>''</default>
+		</key>
+		<key type="u" name="refresh-interval">
+			<default>60</default>
+		</key>
+		<key type="s" name="join-command">
+			<default>'DDNet'</default>
+		</key>
+	</schema>
+</schemalist>
