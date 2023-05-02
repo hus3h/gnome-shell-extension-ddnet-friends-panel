@@ -65,10 +65,10 @@ const DDNetFriendsMenu = GObject.registerClass(
 
    const settingsButton = new PopupMenu.PopupMenuItem("Settings");
    settingsButton.connect('activate', () => {
-     Util.spawn([
-       "gnome-extensions", "prefs",
-       Extension.uuid
-     ]);
+    Util.spawn([
+     "gnome-extensions", "prefs",
+     Extension.uuid
+    ]);
    });
    this.extraButtonsView.addMenuItem(settingsButton);
 
@@ -108,34 +108,34 @@ const DDNetFriendsMenu = GObject.registerClass(
    this.friendsList = [];
    const file = getConfigFile();
    let endpointURL = null;
-   if(file){
+   if (file) {
     try {
-      var [ok, contents, _] = file.load_contents(null);
-      if (ok) {
+     var [ok, contents, _] = file.load_contents(null);
+     if (ok) {
       const lines = ByteArray.toString(contents).split("\n");
       for (var i = 0; i < lines.length; i++) {
-        if (lines[i].search("add_friend") !== -1) {
+       if (lines[i].search("add_friend") !== -1) {
         const match = lines[i].match(/(?<=add_friend "(.*)" \".*\")/);
-          if (match && match.length > 1)
-            this.friendsList.push(new DDNetPlayer(match[1]));
-        }
-        else if (lines[i].search("br_cached_best_serverinfo_url") !== -1) {
+        if (match && match.length > 1)
+         this.friendsList.push(new DDNetPlayer(match[1]));
+       }
+       else if (lines[i].search("br_cached_best_serverinfo_url") !== -1) {
         const match = lines[i].match(/\"(.*)\"/);
-          if (match.length > 1)
-          endpointURL = match[1];
-        }
+        if (match.length > 1)
+         endpointURL = match[1];
+       }
       }
-      }
+     }
     } catch (e) {
-      this.addMenuError("Error reading settings_ddnet.cfg file");
-      logError(e);
-      if (callback) callback();
-      return;
-    }
-   } else {
-     this.addMenuError("Cannot find settings_ddnet.cnf, please select the location manually in the extension settings");
+     this.addMenuError("Error reading settings_ddnet.cfg file");
+     logError(e);
      if (callback) callback();
      return;
+    }
+   } else {
+    this.addMenuError("Cannot find settings_ddnet.cnf, please select the location manually in the extension settings");
+    if (callback) callback();
+    return;
    }
    if (this.friendsList.length > 0) {
     if (endpointURL === null)
@@ -193,9 +193,9 @@ const DDNetFriendsMenu = GObject.registerClass(
    if (this.timeout) Mainloop.source_remove(this.timeout);
    if (this.initialRetryTimeout) Mainloop.source_remove(this.initialRetryTimeout);
   }
-  tryStoreOfficialServersListThenUpdate(timeoutSeconds = 0){
+  tryStoreOfficialServersListThenUpdate(timeoutSeconds = 0) {
    this.clearTimeouts();
-   this.initialRetryTimeout = Mainloop.timeout_add_seconds(timeoutSeconds, ()=> { this.storeOfficialServersListThenUpdate(); });
+   this.initialRetryTimeout = Mainloop.timeout_add_seconds(timeoutSeconds, () => { this.storeOfficialServersListThenUpdate(); });
   }
   storeOfficialServersListThenUpdate() {
    const serverTypes = ["servers", "servers-kog"];
@@ -205,7 +205,7 @@ const DDNetFriendsMenu = GObject.registerClass(
       const serverType = serverTypes[serverTypeIndex];
       for (var i = 0; i < data[serverType].length; i++) {
        for (var group in data[serverType][i].servers) {
-        if(data[serverType][i].servers[group] === null) continue;
+        if (data[serverType][i].servers[group] === null) continue;
         for (var j = 0; j < data[serverType][i].servers[group].length; j++) {
          officialServersList.push(data[serverType][i].servers[group][j].split(":")[0]);
         }
@@ -250,11 +250,11 @@ class DDNetServer {
  getMapName() {
   return this.data.info.map.name + " (" + this.data.info.clients.length + "/" + this.data.info.max_players + ")";
  }
- getCleanServerText(){
+ getCleanServerText() {
   return this.data.info.name.replace(/\[.*?\]/g, "").replace(/\s+/g, " ").trim();
  }
  getServerText() {
-  return this.isVerified() ? this.getCleanServerText()  : this.data.info.name;
+  return this.isVerified() ? this.getCleanServerText() : this.data.info.name;
  }
  getJoinURL() {
   return this.data.addresses[this.data.addresses.length - 1].split("//")[1];
@@ -306,35 +306,35 @@ const PlayersListHead = GObject.registerClass(
  }
 );
 
-function getSettingsJoinCommand(){
-  const value = prefs.joinCommand.get().trim().replace("~", GLib.get_home_dir());
-  return !value ? "DDNet" : value;
+function getSettingsJoinCommand() {
+ const value = prefs.joinCommand.get().trim().replace("~", GLib.get_home_dir());
+ return !value ? "DDNet" : value;
 }
 
-function getConfigFile(){
+function getConfigFile() {
  let file = null;
  let settingsPath = prefs.configPath.get().trim();
- if(!settingsPath){
+ if (!settingsPath) {
   const homeDir = GLib.get_home_dir();
   file = Gio.file_new_for_path(homeDir + "/.teeworlds/settings_ddnet.cfg");
-  if(!file.query_exists(null)){
-    file = Gio.file_new_for_path(homeDir + "/.local/share/ddnet/settings_ddnet.cfg");
+  if (!file.query_exists(null)) {
+   file = Gio.file_new_for_path(homeDir + "/.local/share/ddnet/settings_ddnet.cfg");
   }
  } else {
   file = Gio.file_new_for_path(settingsPath);
  }
- if(!file || !file.query_exists(null)) return null;
+ if (!file || !file.query_exists(null)) return null;
  return file;
 }
 
 function load_json_async(httpSession, url, fun) {
  let message = Soup.Message.new('GET', url);
- if(httpSession.queue_message){
+ if (httpSession.queue_message) {
   httpSession.queue_message(message, function (session, message) {
    let data = JSON.parse(message.response_body.data);
    fun(data);
   });
- } else if(httpSession.send_and_read_async){
+ } else if (httpSession.send_and_read_async) {
   httpSession.send_and_read_async(
    message,
    GLib.PRIORITY_DEFAULT,
@@ -356,10 +356,10 @@ function load_json_async(httpSession, url, fun) {
 function init() { }
 
 function enable() {
- prefs.refreshInterval.changed(()=> {
+ prefs.refreshInterval.changed(() => {
   friendsMenu.updateList();
  });
- prefs.configPath.changed(()=> {
+ prefs.configPath.changed(() => {
   friendsMenu.updateList();
  });
  friendsMenu = new DDNetFriendsMenu();
