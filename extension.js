@@ -170,6 +170,10 @@ const DDNetFriendsMenu = GObject.registerClass(
                     }
                     if (callback) callback();
                     this.startUpdateTimeout();
+                }, (e) => {
+                    this.addMenuError("An error occured when making the HTTP request");
+                    if (callback) callback();
+                    this.startUpdateTimeout(INITIAL_RETRY_INTERVAL_SECONDS);
                 });
             }
             else {
@@ -182,9 +186,11 @@ const DDNetFriendsMenu = GObject.registerClass(
             if (this.menu.isOpen)
                 this.updateList();
         }
-        startUpdateTimeout() {
+        startUpdateTimeout(seconds = null) {
             this.clearTimeouts();
-            this.timeout = Mainloop.timeout_add_seconds(prefs.refreshInterval.get(), () => { this.updateList(); });
+            this.timeout = Mainloop.timeout_add_seconds(seconds === null ? prefs.refreshInterval.get() : seconds, () => {
+                this.updateList();
+            });
         }
         clearTimeouts() {
             if (this.timeout) Mainloop.source_remove(this.timeout);
@@ -216,6 +222,9 @@ const DDNetFriendsMenu = GObject.registerClass(
                     this.addMenuError("Failed to parse servers info, retrying...");
                     this.tryStoreOfficialServersListThenUpdate(INITIAL_RETRY_INTERVAL_SECONDS);
                 }
+            }, (e) => {
+                this.addMenuError("Failed to parse servers info, retrying...");
+                this.tryStoreOfficialServersListThenUpdate(INITIAL_RETRY_INTERVAL_SECONDS);
             });
         }
     }
@@ -324,12 +333,16 @@ function getConfigFile() {
     return file;
 }
 
-function load_json_async(httpSession, url, fun) {
+function load_json_async(httpSession, url, callback, error_callback = null) {
     let message = Soup.Message.new('GET', url);
     if (httpSession.queue_message) {
         httpSession.queue_message(message, function (session, message) {
-            let data = JSON.parse(message.response_body.data);
-            fun(data);
+            try {
+                let data = JSON.parse(message.response_body.data);
+                callback(data);
+            } catch (e) {
+                if (error_callback) error_callback(e);
+            }
         });
     } else if (httpSession.send_and_read_async) {
         httpSession.send_and_read_async(
@@ -337,11 +350,15 @@ function load_json_async(httpSession, url, fun) {
             GLib.PRIORITY_DEFAULT,
             null,
             function (session, result) {
-                let bytes = session.send_and_read_finish(result);
-                let decoder = new TextDecoder('utf-8');
-                let response = decoder.decode(bytes.get_data());
-                let data = JSON.parse(response);
-                fun(data);
+                try {
+                    let bytes = session.send_and_read_finish(result);
+                    let decoder = new TextDecoder('utf-8');
+                    let response = decoder.decode(bytes.get_data());
+                    let data = JSON.parse(response);
+                    callback(data);
+                } catch (e) {
+                    if (error_callback) error_callback(e);
+                }
             }
         );
     }
