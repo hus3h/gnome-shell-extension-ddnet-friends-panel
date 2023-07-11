@@ -114,7 +114,7 @@ const DDNetFriendsMenu = GObject.registerClass(
                             if (lines[i].search("add_friend") !== -1) {
                                 const match = lines[i].match(/(?<=add_friend "(.*)" \".*\")/);
                                 if (match && match.length > 1)
-                                    if (match[1].trim() !== "") {
+                                    if (match[1] !== "") {
                                         this.friendsList.push(new DDNetPlayer(match[1]));
                                     }
                             }
