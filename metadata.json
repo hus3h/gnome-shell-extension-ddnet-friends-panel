@@ -1,5 +1,5 @@
 {
-  "description": "Automatically check for online DDNet friends and join them from your top bar.\n\nThis extension will check for online DDNet friends and show their count in your top bar. You can click the indicator to expand the panel and see more details such as the map each friend is playing, and you can click on a friend list item to launch the game and connect to the server they are in.",
+  "description": "Automatically check for online DDNet (DDraceNetwork/Teeworlds) friends and join them from your top bar.\n\nThis extension will check for online DDNet friends and show their count in your top bar. You can click the indicator to expand the panel and see more details such as the map each friend is playing, and you can click on a friend list item to launch the game and connect to the server they are in.",
   "name": "DDNet Friends Panel",
   "shell-version": [
     "40",

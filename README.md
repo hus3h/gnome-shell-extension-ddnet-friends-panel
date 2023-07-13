@@ -1,14 +1,14 @@
-<img align="middle" src="https://github.com/hus3h/gnome-shell-extension-ddnet-friends-panel/raw/main/ddnet-icon.png" width="100"> 
+<img align="middle" src="ddnet-icon.png" width="100"> 
 
-# DDNet friends panel for GNOME Shell
+# DDNet Friends Panel for GNOME Shell
 
-Automatically check for online DDNet friends and join them from your top bar.
+Automatically check for online DDNet (DDraceNetwork/Teeworlds) friends and join them from your top bar.
 
 This extension will check for online DDNet friends and show their count in your top bar. You can click the indicator to expand the panel and see more details such as the map each friend is playing, and you can click on a friend list item to launch the game and connect to the server they are in.
 
 ![screenshot][screenshot]
 
-[screenshot]: https://github.com/hus3h/gnome-shell-extension-ddnet-friends-panel/raw/main/extension-screenshot.png
+[screenshot]: extension-screenshot.png
 
 ___
 
